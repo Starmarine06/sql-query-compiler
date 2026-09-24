@@ -1,0 +1,9 @@
+{
+  "name": "sql-query-compiler",
+  "version": "1.0.0",
+  "description": "SQL Query Compiler - BCSE307L Compiler Design case study. Walks an SQL command through the compiler pipeline and previews the change it would make.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

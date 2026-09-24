@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SQL Query Compiler · BCSE307L Case Study</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">SQL</div>
+      <div>
+        <h1>Query Compiler</h1>
+        <p>BCSE307L · Compiler Design Case Study · walk an SQL command through the compiler pipeline and preview the change it would make</p>
+      </div>
+    </div>
+    <div class="team">
+      <span>SaiKaushick</span><span>Dev&nbsp;Nambiar</span><span>Sahasrad</span>
+    </div>
+  </header>
+
+  <main>
+    <div id="error-banner" style="display:none"></div>
+
+    <section class="stage" id="stage0">
+      <div class="stage-head"><span class="stage-num">1</span><h2>SQL Query Input</h2></div>
+      <div class="input-row">
+        <textarea id="sql-input" spellcheck="false" rows="3"
+          placeholder="Type a query, e.g.  SELECT name, salary FROM employees WHERE department = 'Engineering' ORDER BY salary DESC;"></textarea>
+        <div class="buttons">
+          <button id="run-btn" class="btn btn-primary">Run (Ctrl+Enter)</button>
+          <button id="apply-btn" class="btn btn-ghost hidden">Apply changes</button>
+          <button id="reset-btn" class="btn btn-ghost">Reset DB</button>
+        </div>
+      </div>
+      <div class="examples">
+        <span class="muted">Try:</span>
+        <span id="examples"></span>
+      </div>
+      <div id="stmt-description" class="desc"></div>
+      <div class="explorer">
+        <div class="explorer-head"><strong>Live sample database</strong> <span class="muted" id="db-summary"></span></div>
+        <div id="db-explorer" class="explorer-grid"></div>
+      </div>
+    </section>
+
+    <div class="progress">
+      <div class="pd" id="prog-1" data-state="todo"><span class="pnr">1</span>Lexer</div>
+      <div class="pd" id="prog-2" data-state="todo"><span class="pnr">2</span>Parser</div>
+      <div class="pd" id="prog-3" data-state="todo"><span class="pnr">3</span>Semantic</div>
+      <div class="pd" id="prog-4" data-state="todo"><span class="pnr">4</span>IR</div>
+      <div class="pd" id="prog-5" data-state="todo"><span class="pnr">5</span>Optimizer</div>
+      <div class="pd" id="prog-6" data-state="todo"><span class="pnr">6</span>Plan</div>
+      <div class="pd" id="prog-7" data-state="todo"><span class="pnr">7</span>Impact</div>
+    </div>
+
+    <section class="stage">
+      <div class="stage-head"><span class="stage-num">2</span><h2>Lexical Analyzer</h2><span class="muted">scan · tokens</span></div>
+      <div id="stage-tokens"></div>
+    </section>
+
+    <section class="stage">
+      <div class="stage-head"><span class="stage-num">3</span><h2>Parser</h2><span class="muted">grammar check · parse tree</span></div>
+      <div id="stage-parse"></div>
+    </section>
+
+    <section class="stage">
+      <div class="stage-head"><span class="stage-num">4</span><h2>Semantic Analyzer</h2><span class="muted">table &amp; column validation</span></div>
+      <div id="stage-semantic"></div>
+    </section>
+
+    <section class="stage">
+      <div class="stage-head"><span class="stage-num">5</span><h2>IR Generator</h2><span class="muted">relational algebra tree</span></div>
+      <div id="stage-ir"></div>
+    </section>
+
+    <section class="stage">
+      <div class="stage-head"><span class="stage-num">6</span><h2>Query Optimizer</h2><span class="muted">original vs. optimized plan</span></div>
+      <div id="stage-opt"></div>
+    </section>
+
+    <section class="stage">
+      <div class="stage-head"><span class="stage-num">7</span><h2>Impact Preview</h2><span class="muted">the change this command would make</span></div>
+      <div id="stage-change"></div>
+    </section>
+  </main>
+
+  <footer>
+    Inspired by <em>Low-Latency Query Compilation</em> (Funke, Mühlig &amp; Teubner, VLDB Journal 2022 · base paper) and
+    <em>Access Path Selection in a Relational DBMS</em> (Selinger et al., SIGMOD 1979).
+  </footer>
+
+  <div id="toast" class="toast"></div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
