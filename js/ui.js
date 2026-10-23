@@ -139,7 +139,7 @@ export function renderSemantic(result) {
   const { errors, warnings } = result;
   const parts = [];
   if (!errors.length && !warnings.length) {
-    parts.push(`<div class="ok-banner">✓ Semantic check passed - column and table references are valid.</div>`);
+    parts.push(`<div class="ok-banner">✓ Semantic check passed - column and table references are valid against catalog.</div>`);
   }
   if (errors.length) {
     parts.push(`<div class="err-banner">✗ ${errors.length} semantic error(s):</div><ul class="emsg">${errors.map((e) => `<li>${esc(e)}</li>`).join('')}</ul>`);
@@ -189,7 +189,7 @@ export function renderSelectResult(sim) {
   const rows = sim.rows
     .map((r) => `<tr>${sim.outCols.map((c) => `<td>${fmtVal(r[c])}</td>`).join('')}</tr>`)
     .join('');
-  return `<table class="tbl diff-tbl"><thead><tr>${head}</tr></thead><tbody>${rows || '<tr><td class="empty" colspan="99">No rows</td></tr>'}</tbody></table>`;
+  return `<table class="tbl diff-tbl"><thead><tr>${head}</tr></thead><tbody>${rows || '<tr><td class="empty" colspan="99">No rows matched</td></tr>'}</tbody></table>`;
 }
 
 export function renderDiff(sim) {
@@ -223,7 +223,7 @@ export function renderDiff(sim) {
     })
     .join('');
 
-  // After table (same row order, deleted rows shown as ghost placeholders)
+  // After table
   const afterRows = order
     .map((rid) => {
       if (deleted.has(rid)) {
@@ -256,12 +256,12 @@ export function renderDiff(sim) {
   return `
     <div class="diff-grid">
       <div>
-        <div class="diff-label">Before</div>
+        <div class="diff-label">Before Command</div>
         ${beforeTbl}
       </div>
       <div class="diff-arrow">→</div>
       <div>
-        <div class="diff-label">After</div>
+        <div class="diff-label">After Command</div>
         ${afterTbl}
       </div>
     </div>`;
@@ -352,21 +352,51 @@ function fmt(v) {
   return v === null || v === undefined ? 'NULL' : String(v);
 }
 
-// ---------- DB explorer ----------
+// ---------- DB Explorer with CSV Actions ----------
 
 export function renderDbExplorer(db) {
-  const tables = Object.values(db.tables)
+  const tables = Object.values(db.tables);
+  if (!tables.length) {
+    return `<div class="empty">No tables in database catalog. Click <strong>Import CSV Table</strong> to add one.</div>`;
+  }
+
+  return tables
     .map((t) => {
-      const head = t.order.map((c) => `<th>${esc(c)}</th>`).join('');
-      const body = t.rows
-        .map((r) => `<tr>${t.order.map((c) => `<td>${fmtVal(r[c])}</td>`).join('')}</tr>`)
-        .join('') || '<tr><td class="empty" colspan="99">empty</td></tr>';
+      const head = t.order
+        .map((c) => {
+          const type = t.columns[c] ? t.columns[c].type : '';
+          return `<th>${esc(c)} ${type ? `<span class="col-type-badge">${esc(type)}</span>` : ''}</th>`;
+        })
+        .join('');
+
+      const body =
+        t.rows
+          .map((r) => `<tr>${t.order.map((c) => `<td>${fmtVal(r[c])}</td>`).join('')}</tr>`)
+          .join('') || '<tr><td class="empty" colspan="99">Table is empty</td></tr>';
+
       return `
-        <div class="explorer-tbl">
-          <div class="explorer-name">${esc(t.name)} <span class="muted">(${Object.keys(t.columns).length} cols · ${t.rows.length} rows)</span></div>
-          <table class="tbl"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>
+        <div class="explorer-tbl" data-table="${esc(t.name)}">
+          <div class="explorer-name">
+            <div class="explorer-title">
+              <strong>${esc(t.name)}</strong>
+              <span class="muted">(${Object.keys(t.columns).length} cols · ${t.rows.length} rows)</span>
+            </div>
+            <div class="explorer-actions">
+              <button class="btn-xs export-csv-btn" data-table="${esc(t.name)}" title="Export table as CSV file">
+                Export CSV
+              </button>
+              <button class="btn-xs btn-danger drop-table-btn" data-table="${esc(t.name)}" title="Remove table from catalog">
+                Remove
+              </button>
+            </div>
+          </div>
+          <div class="table-scroll-container">
+            <table class="tbl">
+              <thead><tr>${head}</tr></thead>
+              <tbody>${body}</tbody>
+            </table>
+          </div>
         </div>`;
     })
     .join('');
-  return tables;
 }
