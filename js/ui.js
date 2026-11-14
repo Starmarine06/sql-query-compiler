@@ -300,9 +300,9 @@ export function renderImpact(sim) {
         ? `No rows in '${sim.table}' match the WHERE clause - this UPDATE would change nothing.`
         : `UPDATE would modify ${rowsChanged} of ${matched} matching row(s) in '${sim.table}'.`;
     for (const [rid, cell] of Object.entries(sim.changedByRid)) {
-      const row = sim.before.find((r) => r._rid === rid);
+      const row = sim.before.find((r) => String(r._rid) === rid);
       const cols = Object.keys(cell);
-      cols.forEach((c) => detail.push(`~ ${row && row.name ? row.name : `row ${rid}`}: ${c} ${fmt(entity(row[c]))} → ${fmt(entity(cell[c]))}`));
+      cols.forEach((c) => detail.push(`~ ${row && row.name ? row.name : `row ${rid}`}: ${c} ${fmt(entity(row ? row[c] : undefined))} → ${fmt(entity(cell[c]))}`));
     }
   }
 
