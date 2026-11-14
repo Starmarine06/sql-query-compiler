@@ -150,10 +150,14 @@ export function parse(tokens) {
     next();
     const rightTok = tok();
     let right;
-    if (rightTok.type === 'identifier' || rightTok.type === 'keyword') {
-      right = parseColumnRef();
-    } else {
+    if (
+      rightTok.type === 'number' ||
+      rightTok.type === 'string' ||
+      (rightTok.type === 'keyword' && ['TRUE', 'FALSE', 'NULL'].includes(rightTok.value))
+    ) {
       right = parseValue();
+    } else {
+      right = parseColumnRef();
     }
     return { kind: 'cmp', op: t.value, left: colRef, right };
   }

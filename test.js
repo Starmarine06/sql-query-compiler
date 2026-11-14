@@ -1,4 +1,4 @@
-import { SAMPLE_DB, cloneDb } from './js/database.js';
+import { SAMPLE_DB, cloneDb, parseCSV, addTableFromCSV, exportTableToCSV } from './js/database.js';
 import { lex } from './js/lexer.js';
 import { parse } from './js/parser.js';
 import { analyze } from './js/semantic.js';
@@ -78,3 +78,51 @@ console.log('apply() sequence:', seq.join('  '));
 // sanity: values
 const row = db.tables.employees.rows.find(r => r.name === 'Zoe');
 console.log('row check:', JSON.stringify(row));
+
+// ---------- CSV Tests ----------
+console.log('\n--- Running CSV Import & Custom DB Tests ---');
+const sampleCsv = `Product ID, Product Name, Category, Price, In Stock, Release Date
+101, "Super Widget, Pro", Hardware, 199.99, true, 2023-01-15
+102, Mega Gadget, Hardware, 49.50, false, 2022-11-01
+103, Software Suite, Digital, 299, true, 2024-05-10
+104, "Cloud ""Storage"" Plan", Digital, 9.99, true, 2021-08-20`;
+
+try {
+  const csvTable = parseCSV(sampleCsv, 'Products Catalog!');
+  console.log(`CSV Parsed Table: name="${csvTable.name}", cols=[${csvTable.order.join(', ')}]`);
+  console.log(`Inferred schema:`, JSON.stringify(csvTable.columns));
+  console.log(`Row count: ${csvTable.rows.length}`);
+
+  // Add to DB
+  const customDb = cloneDb(SAMPLE_DB);
+  addTableFromCSV(customDb, sampleCsv, 'products');
+
+  // Run SQL on imported CSV table
+  const testSqls = [
+    "SELECT product_name, price FROM products WHERE price > 50 ORDER BY price DESC;",
+    "UPDATE products SET in_stock = true WHERE category = 'Hardware';",
+    "DELETE FROM products WHERE in_stock = false;",
+    "SELECT * FROM products;"
+  ];
+
+  for (const sql of testSqls) {
+    const tokens = lex(sql);
+    const ast = parse(tokens);
+    const sem = analyze(ast, customDb);
+    if (sem.errors.length) {
+      throw new Error(`CSV SQL Semantic error: ${sem.errors.join('; ')}`);
+    }
+    const res = simulate(customDb, ast);
+    apply(customDb, ast);
+    console.log(`CSV SQL Success [${sql}] -> result rows=${res.rows ? res.rows.length : res.after.length}`);
+  }
+
+  // Export back to CSV
+  const exported = exportTableToCSV(customDb.tables.products);
+  console.log(`Exported CSV length: ${exported.length} chars`);
+
+  console.log('CSV Import & Query tests PASSED successfully!\n');
+} catch (e) {
+  console.error('CSV Test Failed:', e);
+  process.exit(1);
+}

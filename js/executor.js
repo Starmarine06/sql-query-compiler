@@ -58,6 +58,7 @@ export function runSelect(db, ast) {
 
   return {
     kind: 'select',
+    from: ast.from,
     outCols,
     rows: projected.map((r) => {
       const { _rid, ...rest } = r;
